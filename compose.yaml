@@ -14,11 +14,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - app_network
+      - spring_auto_app_network
 
 volumes:
   mysql_data:
 
 networks:
-  app_network:
+  spring_auto_app_network:
     driver: bridge
