@@ -10,6 +10,6 @@ public class HelloController {
 
     @GetMapping("/hello")
     public String hello() {
-        return "Hello, Spring Boot4!";
+        return "Hello, Spring Boot5!";
     }
 }
