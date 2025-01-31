@@ -70,13 +70,13 @@ CONTAINER ID   IMAGE       STATUS          PORTS                  NAMES
 1. New Connection 으로 새로운 커넥션 생성
 2. 컨테이너 DB 연결 정보 입력
 
-| 설정 | 값            |
-|---|--------------|
+| 설정 | 값           |
+|---|-------------|
 | **Host** | localhost 또는 127.0.0.1 |
-| **Port** | 3306         |
+| **Port** | 3306        |
 | **Database** | spring_study (연결할 데이터베이스명) |
-| **Username** | sa           |
-| **Password** | sa`          |
+| **Username** | sa          |
+| **Password** | sa          |
 
 
 
