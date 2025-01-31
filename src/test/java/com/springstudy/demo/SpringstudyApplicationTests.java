@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 class SpringstudyApplicationTests {
@@ -20,7 +21,6 @@ class SpringstudyApplicationTests {
 
     @Test
     void connectTest(){
-
         try (Connection conn = DriverManager.getConnection(url, username, password)) {
             if (conn != null) {
                 System.out.println("✅ 데이터베이스 연결 성공!");
