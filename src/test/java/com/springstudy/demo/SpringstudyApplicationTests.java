@@ -4,16 +4,22 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class SpringstudyApplicationTests {
+    @Value("${spring.datasource.url}")
+    String url;
+
+    @Value("${spring.datasource.username}")
+    String username = "sa";
+
+    @Value("${spring.datasource.password}")
+    String password = "sa";
 
     @Test
     void connectTest(){
-        String url = "jdbc:mysql://localhost:3306/spring_study";
-        String username = "sa";
-        String password = "sa";
 
         try (Connection conn = DriverManager.getConnection(url, username, password)) {
             if (conn != null) {
