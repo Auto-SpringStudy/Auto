@@ -15,7 +15,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql # 데이타 유지
       - ~/mysql-config/mysql-config.cnf:/etc/mysql/conf.d/mysql-config.cnf
     networks:
       - spring_auto_app_network
