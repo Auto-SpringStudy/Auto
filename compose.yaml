@@ -21,4 +21,5 @@ volumes:
 
 networks:
   spring_auto_app_network:
+    name: spring_auto_app_network
     driver: bridge
