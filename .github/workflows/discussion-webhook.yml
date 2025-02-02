@@ -1,0 +1,25 @@
+name: Discussion Webhook
+
+on:
+  discussion:
+    types: [created, edited]  # 새 Discussion이 생성되거나 수정될 때 실행
+
+jobs:
+  notify_webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Webhook on Discussion Creation or Edit
+        run: |
+          curl -X POST "http://3.39.238.103:8080/api/github/webhook" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "event": "${{ github.event.action }}",
+              "discussion_number": "${{ github.event.discussion.number }}",
+              "discussion_url": "${{ github.event.discussion.html_url }}",
+              "title": "${{ github.event.discussion.title }}",
+              "user": "${{ github.event.discussion.user.login }}",
+              "created_at": "${{ github.event.discussion.created_at }}",
+              "updated_at": "${{ github.event.discussion.updated_at }}",
+              "body": "${{ github.event.discussion.body }}"
+            }'

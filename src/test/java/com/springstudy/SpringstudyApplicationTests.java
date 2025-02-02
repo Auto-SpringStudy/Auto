@@ -1,4 +1,4 @@
-package com.springstudy.demo;
+package com.springstudy;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
