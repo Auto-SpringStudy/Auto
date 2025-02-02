@@ -9,22 +9,10 @@ services:
       MYSQL_DATABASE: spring_study
       MYSQL_USER: sa
       MYSQL_PASSWORD: sa
-      MYSQL_INNODB_BUFFER_POOL_SIZE: 64M
-      MYSQL_MAX_CONNECTIONS: 50
-      MYSQL_THREAD_CACHE_SIZE: 8
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql # 데이타 유지
-      - ~/mysql-config/mysql-config.cnf:/etc/mysql/conf.d/mysql-config.cnf
-    networks:
-      - spring_auto_app_network
-    mem_limit: 512m
+      - mysql_data:/var/lib/mysql
 
 volumes:
   mysql_data:
-
-networks:
-  spring_auto_app_network:
-    name: spring_auto_app_network
-    driver: bridge
