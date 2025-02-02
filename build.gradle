@@ -32,22 +32,12 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 
-
-	// OkHttp for HTTP requests
-	implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-
-	// Gson for JSON parsing
-	implementation 'com.google.code.gson:gson:2.10.1'
-
 	implementation 'org.apache.commons:commons-text:1.13.0'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.mockito:mockito-core'
-	testImplementation 'org.mockito:mockito-junit-jupiter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 tasks.named('test') {
