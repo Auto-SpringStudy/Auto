@@ -19,7 +19,7 @@ public class GithubWebhookController {
     public ResponseEntity<String> handleGithubWebhook(@RequestBody Map<String, Object> payload) {
         try {
             // GitHub Webhook 데이터 추출
-            Long discussionNumber = ((Number) payload.get("discussion_number")).longValue();
+            Long discussionNumber = Long.parseLong((String) payload.get("discussion_number"));
             String title = (String) payload.get("title");
             String user = (String) payload.get("user");
             String discussionUrl = (String) payload.get("discussion_url");
