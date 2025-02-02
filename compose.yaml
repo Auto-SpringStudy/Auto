@@ -9,10 +9,15 @@ services:
       MYSQL_DATABASE: spring_study
       MYSQL_USER: sa
       MYSQL_PASSWORD: sa
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
 
 volumes:
   mysql_data:
