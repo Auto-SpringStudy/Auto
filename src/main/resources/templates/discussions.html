@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Discussions</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: nav}"></div>
+<div class="container mt-4">
+    <h2>GitHub Discussions</h2>
+
+    <!-- 필터링 폼 -->
+    <form method="get" action="/discussions" class="mb-3">
+        <label for="userFilter">Filter by User:</label>
+        <select id="userFilter" name="user" class="form-select" onchange="this.form.submit()">
+            <option value="">All Users</option>
+            <option th:each="user : ${users}" th:value="${user}" th:text="${user}" th:selected="${user == selectedUser}"></option>
+        </select>
+    </form>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>User</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th>URL</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="discussion : ${discussions}">
+            <td>
+                <a th:href="@{/discussions/{id}(id=${discussion.discussionNumber})}" th:text="${discussion.discussionNumber}"></a>
+            </td>
+            <td th:text="${discussion.title}"></td>
+            <td th:text="${discussion.user}"></td>
+            <td th:text="${discussion.createdAt}"></td>
+            <td th:text="${discussion.updatedAt}"></td>
+            <td><a th:href="${discussion.discussionUrl}" target="_blank">View</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -2,6 +2,7 @@ package com.springstudy.service;
 
 import com.springstudy.domain.Discussion;
 import com.springstudy.repository.DiscussionRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,5 +39,13 @@ public class DiscussionService {
 
             return discussionRepository.save(newDiscussion);
         }
+    }
+
+    public List<Discussion> findAll() {
+        return discussionRepository.findAll();
+    }
+
+    public Optional<Discussion> findById(long id) {
+        return discussionRepository.findById(id);
     }
 }
