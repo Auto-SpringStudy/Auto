@@ -20,7 +20,6 @@ public class Discussion {
 
     @Id
     private Long discussionNumber; // GitHub Discussion 번호 (Primary Key)
-
     private String title;          // 제목
     private String user;           // 작성자 GitHub ID
     private Instant createdAt;     // 생성 시간
