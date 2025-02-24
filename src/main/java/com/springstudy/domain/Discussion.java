@@ -34,6 +34,7 @@ public class Discussion {
         this.title = title;
         this.body = body;
         this.updatedAt = updatedAt;
+
     }
 
 }
