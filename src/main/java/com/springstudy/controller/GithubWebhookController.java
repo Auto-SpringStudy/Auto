@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 
@@ -24,8 +25,12 @@ public class GithubWebhookController {
             String user = (String) payload.get("user");
             String discussionUrl = (String) payload.get("discussion_url");
             String body = (String) payload.get("body");
-            Instant createdAt = Instant.parse((String) payload.get("created_at"));
-            Instant updatedAt = payload.containsKey("updated_at") ? Instant.parse((String) payload.get("updated_at")) : createdAt;
+
+            // 9시간 더하기 (Duration 사용)
+            Instant createdAt = Instant.parse((String) payload.get("created_at")).plus(Duration.ofHours(9));
+            Instant updatedAt = payload.containsKey("updated_at")
+                    ? Instant.parse((String) payload.get("updated_at")).plus(Duration.ofHours(9))
+                    : createdAt;
 
             // 서비스에 저장 또는 업데이트 요청
             discussionService.saveOrUpdateDiscussion(discussionNumber, title, user, discussionUrl, body, createdAt, updatedAt);
