@@ -13,14 +13,15 @@ import java.time.LocalTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-@RestController
+@Controller
 @RequestMapping("/lectures")
 @RequiredArgsConstructor
 public class LectureController {
@@ -28,6 +29,7 @@ public class LectureController {
     private final LectureService lectureService;
 
     @PostMapping("/add")
+    @ResponseBody
     public ResponseEntity<String> createLecture(@RequestBody LectureRequest lectureRequest) {
         Lecture lecture = new Lecture();
         lecture.setTitle(lectureRequest.getTitle());
@@ -52,14 +54,9 @@ public class LectureController {
     }
 
     @GetMapping
-    public List<Lecture> getAllLectures() {
-        return lectureRepository.findAll();
-    }
-
-    @GetMapping
     public String showLectureList(Model model) {
         List<LectureDTO> lectures = lectureService.getAllLectures();
         model.addAttribute("lectures", lectures);
-        return "lecture-list";
+        return "lectures";
     }
 }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>강의 목록</title>
+    <script>
+        function toggle(id) {
+            var elem = document.getElementById(id);
+            if (elem) {
+                elem.style.display = (elem.style.display === "none") ? "block" : "none";
+            }
+        }
+    </script>
+    <style>
+        .lecture { font-size: 24px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .section { font-size: 20px; font-weight: bold; margin-left: 20px; cursor: pointer; margin-top: 5px; }
+        .lesson { font-size: 16px; margin-left: 40px; margin-top: 3px; }
+    </style>
+</head>
+<body>
+<h1>강의 목록</h1>
+
+<!-- 강의 목록 -->
+<div th:each="lecture : ${lectures}">
+    <!-- Lecture 클릭 시 섹션 보이기/숨기기 -->
+    <div class="lecture" th:onclick="|toggle('lecture-${lecture.lectureId}')|">
+        <span th:text="${lecture.lectureTitle}"></span>
+    </div>
+
+    <!-- 강의의 섹션들 -->
+    <div th:id="|lecture-${lecture.lectureId}|" style="display: none;">
+        <div th:each="section : ${lecture.sections}">
+            <!-- Section 클릭 시 강의 항목 보이기/숨기기 -->
+            <div class="section" th:onclick="|toggle('section-${section.sectionId}')|">
+                <span th:text="${section.sectionTitle}"></span>
+            </div>
+
+            <!-- 섹션의 강의 항목들 -->
+            <div th:id="|section-${section.sectionId}|" style="display: none;">
+                <div class="lesson" th:each="lesson : ${section.lessons}">
+                    <span th:text="${lesson.lessonTitle}"></span>
+                    (소요 시간: <span th:text="${lesson.duration}"></span>)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
