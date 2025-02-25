@@ -11,6 +11,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // Webhook 요청이 들어오면 인증 체크를 하지 않도록 예외 처리
+        if (request.getRequestURI().equals("/api/github/webhook")) {
+            return true; // 인증 없이 Webhook을 처리
+        }
+
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
