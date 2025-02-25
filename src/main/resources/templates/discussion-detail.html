@@ -36,7 +36,7 @@
         </tr>
         <tr>
             <th>Body</th>
-            <td th:utext="${#strings.replace(discussion.body, '\n', '<br/>')}"></td>
+            <td th:text="${discussion.body}"></td>
         </tr>
     </table>
     <a href="/discussions" class="btn btn-primary">Back to List</a>
