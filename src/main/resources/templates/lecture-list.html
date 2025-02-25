@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>강의 목록</title>
+    <script>
+        function toggle(id) {
+            var elem = document.getElementById(id);
+            elem.style.display = (elem.style.display === "none") ? "block" : "none";
+        }
+    </script>
+    <style>
+        .lecture { font-size: 24px; font-weight: bold; cursor: pointer; }
+        .section { font-size: 20px; font-weight: bold; margin-left: 20px; cursor: pointer; }
+        .lesson { font-size: 16px; margin-left: 40px; }
+    </style>
+</head>
+<body>
+<h1>강의 목록</h1>
+<div th:each="lecture : ${lectures}">
+    <div class="lecture" th:onclick="'toggle(\'lecture-' + ${lecture.lectureId} + '\')'">
+        <span th:text="${lecture.lectureTitle}"></span>
+    </div>
+    <div th:id="'lecture-' + ${lecture.lectureId}" style="display: none;">
+        <div th:each="section : ${lecture.sections}">
+            <div class="section" th:onclick="'toggle(\'section-' + ${section.sectionId} + '\')'">
+                <span th:text="${section.sectionTitle}"></span>
+            </div>
+            <div th:id="'section-' + ${section.sectionId}" style="display: none;">
+                <div class="lesson" th:each="lesson : ${section.lessons}">
+                    <span th:text="${lesson.lessonTitle}"></span> (소요 시간: <span th:text="${lesson.duration}"></span>)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
