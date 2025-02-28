@@ -1,0 +1,76 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+}
+
+.lecture-tree, .calendar, .schedule-list {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+}
+
+.selected {
+    background-color: #d3d3d3;
+}
+
+.lesson-checkbox:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.calendar {
+    text-align: center;
+    margin: 20px auto;
+    width: 300px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    width: 14.2%;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.calendar-cell {
+    cursor: pointer;
+}
+
+.calendar-cell:hover {
+    background-color: #f0f0f0;
+}
+
+.selected {
+    background-color: #007bff !important;
+    color: white;
+}
+
