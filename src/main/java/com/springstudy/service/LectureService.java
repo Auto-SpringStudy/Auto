@@ -50,7 +50,6 @@ public class LectureService {
                 })
                 .collect(Collectors.toList());
 
-        // LectureDTO(lectureId, lectureTitle, List<SectionDTO>)
         return new LectureDTO(
                 lecture.getId(),
                 lecture.getTitle(),
