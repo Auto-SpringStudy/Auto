@@ -32,7 +32,8 @@ public class UserCheckController {
             @RequestParam(defaultValue = "0") int page,
             Model model) {
 
-        Pageable pageable = PageRequest.of(page, 50, Sort.by("schedule.date").descending());
+        Pageable pageable = PageRequest.of(page, 50, Sort.by("user.userName").ascending().and(Sort.by("schedule.date").descending())
+        );
 
         Page<UserCheck> pageResult = userCheckRepository.findByFilters(
                 userName != null && !userName.isBlank() ? userName : null,
