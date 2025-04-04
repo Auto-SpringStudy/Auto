@@ -4,6 +4,7 @@ import com.springstudy.domain.Schedule;
 import com.springstudy.dto.ScheduleRequest;
 import com.springstudy.dto.ScheduleResponse;
 import com.springstudy.service.ScheduleService;
+import com.springstudy.service.UserCheckService;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -25,12 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ScheduleController {
     private final ScheduleService scheduleService;
+    private final UserCheckService userCheckService;
 
     // 여러 레슨 일괄 등록
     @PostMapping("/bulk")
     public ResponseEntity<String> addSchedules(@RequestBody ScheduleRequest request) {
         // request 안에 date, lessonIds가 들어있다
-        scheduleService.addSchedules(request.getDate(), request.getLessonIds());
+        scheduleService.addSchedules(request.getDate(), request.getLessonIds(), request.getProgressCheckTimes());
         return ResponseEntity.ok("OK");
     }
 
@@ -60,6 +62,7 @@ public class ScheduleController {
 
     @DeleteMapping("/{scheduleId}")
     public ResponseEntity<Void> deleteSchedule(@PathVariable Long scheduleId) {
+        userCheckService.deleteUserCheckByScheduleId(scheduleId);
         scheduleService.deleteById(scheduleId);
         return ResponseEntity.noContent().build();
     }

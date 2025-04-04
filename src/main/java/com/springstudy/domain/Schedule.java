@@ -2,6 +2,9 @@ package com.springstudy.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,10 +22,17 @@ public class Schedule {
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
 
+    private LocalTime progressCheckTime;
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
+    private List<UserCheck> userChecks = new ArrayList<>();
+
+
     public Schedule() {}
 
-    public Schedule(LocalDate date, Lesson lesson) {
+    public Schedule(LocalDate date, Lesson lesson, LocalTime progressCheckTime) {
         this.date = date;
         this.lesson = lesson;
+        this.progressCheckTime = progressCheckTime;
     }
 }

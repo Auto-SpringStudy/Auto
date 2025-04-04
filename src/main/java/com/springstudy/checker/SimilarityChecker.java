@@ -22,7 +22,6 @@ public class SimilarityChecker {
 
         // 두 개의 유사도 점수 중 높은 값을 선택하여 비교
         double similarityScore = Math.max(levenshteinSimilarity, jaccardSimilarity);
-        System.out.println(similarityScore);
         return similarityScore >= SIMILARITY_THRESHOLD;
     }
 

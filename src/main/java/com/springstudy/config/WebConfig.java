@@ -10,8 +10,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuthInterceptor())
-                .addPathPatterns("/**") // 모든 경로에 적용
-                .excludePathPatterns("/", "/login", "/logout", "/css/**", "/js/**"); // 예외: 메인 페이지, 로그인, 정적 파일
+                //.addPathPatterns("/**") // 모든 경로에 적용
+                .excludePathPatterns("/", "/login", "/logout", "/css/**", "/js/**", "/signup"); // 예외: 메인 페이지, 로그인, 정적 파일
 
     }
 }

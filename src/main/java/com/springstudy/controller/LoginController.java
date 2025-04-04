@@ -2,6 +2,7 @@ package com.springstudy.controller;
 
 
 import com.springstudy.domain.User;
+import com.springstudy.dto.UserDto;
 import com.springstudy.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
@@ -31,12 +32,11 @@ public class LoginController {
 
     // 로그인 요청 처리
     @PostMapping("/login")
-    public String login(@RequestParam String username,
+    public String login(@RequestParam String userId,
                         @RequestParam String password,
                         HttpSession session,
                         Model model) {
-
-        Optional<User> user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUserId(userId);
 
         if (user.isPresent() && user.get().getPassword().equals(password)) {
             session.setAttribute("user", user.get());
@@ -55,4 +55,6 @@ public class LoginController {
         session.invalidate(); // 세션 삭제
         return "redirect:/"; // 로그아웃 후 메인 페이지로 이동
     }
+
+
 }

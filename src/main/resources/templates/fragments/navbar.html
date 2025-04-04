@@ -8,15 +8,16 @@
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="/lecture-schedule">강의 진도 설정</a></li>
         <li class="nav-item">
-          <a class="nav-link" href="/lectures">Lectures</a>
+          <a class="nav-link" href="/discussions">GitHub Discussions</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/discussions">GitHub Discussions</a>
+          <a class="nav-link" href="/admin/users">유저 List</a>
         </li>
         <li class="nav-item">
           <!-- 로그인 여부에 따라 표시 변경 -->
           <span class="navbar-text text-white me-3" th:if="${loggedInUser}">
-                        Logged in as <strong th:text="${loggedInUser.username}"></strong>
+                        Logged in as
+            <a href="/user/update"><strong th:text="${loggedInUser.userName}"></strong></a>
                     </span>
           <a class="btn btn-danger btn-sm" href="/logout" th:if="${loggedInUser}">Logout</a>
           <a class="btn btn-primary btn-sm" href="/" th:unless="${loggedInUser}">Login</a>

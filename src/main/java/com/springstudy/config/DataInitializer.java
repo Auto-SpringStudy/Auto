@@ -15,8 +15,11 @@ public class DataInitializer {
         return args -> {
             if (userRepository.count() == 0) {
                 User user = User.builder()
-                        .username("spring")
+                        .userId("spring")
                         .password("spring")
+                        .githubId("admin")
+                        .userName("spring")
+                        .participating(false)
                         .build();
                 userRepository.save(user);
             }

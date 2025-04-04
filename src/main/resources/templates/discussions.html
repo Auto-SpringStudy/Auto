@@ -8,7 +8,11 @@
 <body>
 <div th:replace="~{fragments/navbar :: nav}"></div>
 <div class="container mt-4">
-    <h2>GitHub Discussions</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">GitHub Discussions</h2>
+        <a href="/user-checks" class="btn btn-primary">User 진도 체크 확인하기</a>
+    </div>
+
 
     <!-- 필터링 폼 -->
     <form method="get" action="/discussions" class="mb-3">

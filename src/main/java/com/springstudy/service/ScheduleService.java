@@ -1,14 +1,18 @@
 package com.springstudy.service;
 
+import com.springstudy.domain.DayTime;
 import com.springstudy.domain.Lesson;
 import com.springstudy.domain.Schedule;
 import com.springstudy.dto.ScheduleResponse;
 import com.springstudy.repository.LessonRepository;
 import com.springstudy.repository.ScheduleRepository;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -20,17 +24,28 @@ import org.springframework.transaction.annotation.Transactional;
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final LessonRepository lessonRepository;
+    private final DayTimeService dayTimeService;
+    private final UserCheckService userCheckService;
 
 
     @Transactional
-    public void addSchedules(String dateStr, List<Long> lessonIds) {
+    public void addSchedules(String dateStr, List<Long> lessonIds, String progressCheckTimes) {
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        LocalTime defaultTime = dayTimeService.getAllDefaultTimes().stream()
+                .filter(dt -> dt.getDay() == dayOfWeek)
+                .findFirst()
+                .map(DayTime::getDefaultTime)
+                .orElse(LocalTime.of(9, 0)); // 기본값
+
+        LocalTime progressTime = progressCheckTimes != null ? LocalTime.parse(progressCheckTimes) : defaultTime;
+
         for (Long lessonId : lessonIds) {
             Lesson lesson = lessonRepository.findById(lessonId)
                     .orElseThrow(() -> new RuntimeException("Lesson not found, id=" + lessonId));
-            // Schedule 엔티티 생성하여 저장
-            Schedule schedule = new Schedule(date, lesson);
+            Schedule schedule = new Schedule(date, lesson, progressTime);
             scheduleRepository.save(schedule);
+            userCheckService.createUserCheck(schedule);
         }
     }
 
@@ -53,7 +68,8 @@ public class ScheduleService {
                         sch.getDate().toString(),
                         sch.getLesson().getId(),
                         sch.getLesson().getTitle(),
-                        sch.getLesson().getDuration().toString() // "HH:MM:SS"
+                        sch.getLesson().getDuration().toString(), // "HH:MM:SS",
+                        sch.getProgressCheckTime()
                 ))
                 .collect(Collectors.toList());
     }

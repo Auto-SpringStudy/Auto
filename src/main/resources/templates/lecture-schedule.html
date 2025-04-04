@@ -3,7 +3,7 @@
 <head>
   <title>강의 스케줄 (Accordion + Disabled + Calendar)</title>
   <style>
-    /* 기본 스타일 */
+    /* 기존 스타일 그대로 유지 */
     body {
       font-family: Arial, sans-serif;
     }
@@ -21,12 +21,10 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
-    /* 이미 등록된 레슨(회색 표시) */
     .already-registered {
       opacity: 0.5;
-      pointer-events: none; /* 클릭도 불가 */
+      pointer-events: none;
     }
-
     .calendar {
       text-align: center;
       margin: 20px auto;
@@ -70,10 +68,8 @@
       color: white;
     }
     .has-schedule {
-      background-color: #ffcccc !important; /* 등록된 날짜 색상 */
+      background-color: #ffcccc !important;
     }
-
-    /* 오른쪽 목록 스타일 */
     .schedule-list ul {
       list-style: none;
       padding: 0;
@@ -92,15 +88,25 @@
     .remove-btn:hover {
       background: #cc4949;
     }
-
+    /* 진행시간 입력 필드 스타일 */
+    .progress-time-wrapper {
+      margin-bottom: 10px;
+    }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
 <div th:replace="~{fragments/navbar :: nav}"></div>
 
-<div class="container">
+<div class="container mt-4">
+  <h5>스터디 참여 명단</h5>
+  <ul class="list-inline">
+    <li class="list-inline-item" th:each="user : ${users}" th:text="${user.userName}"></li>
+  </ul>
+</div>
 
+
+<div class="container">
   <!-- 왼쪽: Lecture 드롭다운 + 아코디언 섹션/레슨 -->
   <div class="lecture-tree">
     <h2>강의 목록</h2>
@@ -139,49 +145,60 @@
     </table>
   </div>
 
-  <!-- 오른쪽: 선택한 강의 (특정 날짜) + 총 시간 + 등록 -->
+  <!-- 오른쪽: 선택한 강의 목록 + 진행시간(전체 적용) + 총 시간 + 등록 -->
   <div class="schedule-list">
     <h2>선택한 강의</h2>
+    <!-- 진행시간 설정 영역 -->
+    <div class="progress-time-wrapper">
+      <label for="default-progress-time">과제 체크 시간 (전체 적용)</label>
+      <input type="time" id="default-progress-time" />
+    </div>
     <ul id="selected-lectures"></ul>
     <p>총 소요 시간: <span id="total-time">0분 0초</span></p>
     <button id="register-btn">등록</button>
   </div>
-
+</div>
+<div class="text-end mt-4">
+  <a href="/daytime/sc" class="btn btn-secondary">요일별 Default 시간 설정</a>
 </div>
 
 <script>
-
-
 document.addEventListener("DOMContentLoaded", function() {
 
-   document.addEventListener("click", function (e) {
-    if (e.target.classList.contains("lesson-label")) {
+  // 날짜 클릭 시 해당 요일의 Default 진행시간을 서버에서 가져와 time input에 반영
+  function fetchDefaultTimeForDate(dateStr) {
+    const dateObj = new Date(dateStr);
+    const dayNames = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+    const dayName = dayNames[dateObj.getDay()];
+    fetch(`/daytime?day=${dayName}`)
+      .then(res => res.json())
+      .then(dayTimeObj => {
+        document.getElementById("default-progress-time").value = dayTimeObj.defaultTime;
+      })
+      .catch(err => {
+        console.error("Default 시간 조회 실패:", err);
+      });
+  }
 
+  // 레슨 레이블 클릭 시 체크박스 토글
+  document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("lesson-label")) {
       const lessonId = e.target.getAttribute("for").replace("lesson-", "");
       const checkbox = document.getElementById(`lesson-${lessonId}`);
-
-      if (checkbox) {
-        if (!checkbox.disabled) {
-          checkbox.checked = !checkbox.checked;
-          checkbox.dispatchEvent(new Event("change")); // 기존 change 이벤트 실행
-        }
+      if (checkbox && !checkbox.disabled) {
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event("change"));
       }
     }
   });
 
-  // ---------------------------------------------------
-  // 0) "이미 등록된 레슨 ID" 배열 + 페이지 로드 시 가져오기
-  // ---------------------------------------------------
-  let registeredLessonIds = []; // ex: [3,7,10...]
-
-  // /schedule/registered-lessons -> 이미 등록된 lessonId 목록
+  let registeredLessonIds = [];
   fetch("/schedule/registered-lessons")
     .then(res => res.json())
     .then(data => {
-      registeredLessonIds = data; // [3,5,7...]
+      registeredLessonIds = data;
     })
     .then(() => {
-      // 아래 함수들 실행
       initLectureDropdown();
       initCalendar();
     })
@@ -189,10 +206,6 @@ document.addEventListener("DOMContentLoaded", function() {
       console.error("등록된 레슨 조회 실패:", err);
     });
 
-
-  // ---------------------------------------------------
-  // A) Lecture 드롭다운 -> 아코디언 형태로 섹션/레슨 표시
-  // ---------------------------------------------------
   const lectureSelect = document.getElementById("lecture-select");
   const sectionContainer = document.getElementById("section-lesson-container");
 
@@ -206,7 +219,6 @@ document.addEventListener("DOMContentLoaded", function() {
       fetch(`/lectures/${lectureId}`)
         .then(res => res.json())
         .then(lecture => {
-          // lecture.sections
           renderSections(lecture.sections);
         });
     });
@@ -214,49 +226,28 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function renderSections(sections) {
     sectionContainer.innerHTML = "";
-
     sections.forEach(sec => {
-      // 1) 섹션 헤더(아코디언)
       const sectionHeader = document.createElement("div");
       sectionHeader.style.fontWeight = "bold";
       sectionHeader.style.marginTop = "10px";
       sectionHeader.style.cursor = "pointer";
       sectionHeader.textContent = sec.sectionTitle;
-
-      // 클릭하면 레슨 펼치기/접기
       sectionHeader.addEventListener("click", function() {
         const lessonDiv = document.getElementById(`lessons-${sec.sectionId}`);
-        if (lessonDiv.style.display === "none") {
-          lessonDiv.style.display = "block";
-        } else {
-          lessonDiv.style.display = "none";
-        }
+        lessonDiv.style.display = (lessonDiv.style.display === "none") ? "block" : "none";
       });
-
-      // 2) 레슨 컨테이너(처음엔 숨김)
       const lessonContainer = document.createElement("div");
       lessonContainer.id = `lessons-${sec.sectionId}`;
       lessonContainer.style.marginLeft = "20px";
       lessonContainer.style.marginTop = "5px";
       lessonContainer.style.display = "none";
-
-      // 3) 레슨 반복
       sec.lessons.forEach(lesson => {
         const lessonDiv = document.createElement("div");
         lessonDiv.style.marginTop = "3px";
-
-        // 이미 등록된 레슨인지 확인
         const isRegistered = registeredLessonIds.includes(lesson.lessonId);
-
-        let disabledAttr = "";
-        let checkedAttr = "";
-        let additionalClass = "";
-        if (isRegistered) {
-          disabledAttr = "disabled";
-          checkedAttr = "checked";
-          additionalClass = "already-registered"; // 회색 표시
-        }
-
+        let disabledAttr = isRegistered ? "disabled" : "";
+        let checkedAttr = isRegistered ? "checked" : "";
+        let additionalClass = isRegistered ? "already-registered" : "";
         lessonDiv.innerHTML = `
           <div class="${additionalClass}">
             <input type="checkbox" class="lesson-checkbox"
@@ -271,18 +262,12 @@ document.addEventListener("DOMContentLoaded", function() {
         `;
         lessonContainer.appendChild(lessonDiv);
       });
-
-      // 섹션 헤더 + 레슨 컨테이너
       sectionContainer.appendChild(sectionHeader);
       sectionContainer.appendChild(lessonContainer);
     });
   }
 
-
-  // ---------------------------------------------------
-  // B) 달력 & 날짜별 등록된 레슨 표시
-  // ---------------------------------------------------
-  let datesWithSchedule = []; // ["2025-02-27","2025-03-01", ...]
+  let datesWithSchedule = [];
   const calendarBody = document.getElementById("calendar-body");
   const currentMonthText = document.getElementById("current-month");
   const prevMonthBtn = document.getElementById("prev-month");
@@ -291,11 +276,9 @@ document.addEventListener("DOMContentLoaded", function() {
   let selectedDate = null;
 
   function initCalendar() {
-    // 1) 먼저 스케줄 날짜들 가져오고 -> 달력 렌더
     fetchAllScheduledDates().then(() => {
       renderCalendar(currentDate);
     });
-
     prevMonthBtn.addEventListener("click", function() {
       currentDate.setMonth(currentDate.getMonth() - 1);
       renderCalendar(currentDate);
@@ -307,7 +290,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function fetchAllScheduledDates() {
-    // /schedule/dates -> ["2025-02-27","..."]
     return fetch("/schedule/dates")
       .then(r => r.json())
       .then(data => {
@@ -320,10 +302,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const year = date.getFullYear();
     const month = date.getMonth();
     currentMonthText.textContent = `${year}년 ${month + 1}월`;
-
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
-
     let row = document.createElement("tr");
     for (let i = 0; i < firstDay; i++) {
       row.appendChild(document.createElement("td"));
@@ -334,21 +314,17 @@ document.addEventListener("DOMContentLoaded", function() {
       cell.classList.add("calendar-cell");
       const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       cell.setAttribute("data-date", dateStr);
-
-      // 등록된 날짜 색상
       if (datesWithSchedule.includes(dateStr)) {
         cell.classList.add("has-schedule");
       }
-
-      // 날짜 클릭
       cell.addEventListener("click", function() {
         document.querySelectorAll(".calendar-cell").forEach(c => c.classList.remove("selected"));
         this.classList.add("selected");
         selectedDate = dateStr;
-
         loadSchedulesByDate(selectedDate);
+        // 날짜 클릭 시 default 진행시간을 서버에서 조회하여 입력 필드에 반영
+        fetchDefaultTimeForDate(selectedDate);
       });
-
       row.appendChild(cell);
       if ((day + firstDay) % 7 === 0 || day === lastDate) {
         calendarBody.appendChild(row);
@@ -357,11 +333,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // 날짜별 등록된 레슨 -> 오른쪽 목록
   function loadSchedulesByDate(dateStr) {
     selectedLecturesElem.innerHTML = "";
     totalTimeElem.textContent = "0분 0초";
-
     fetch(`/schedule?date=${dateStr}`)
       .then(r => r.json())
       .then(data => {
@@ -369,57 +343,27 @@ document.addEventListener("DOMContentLoaded", function() {
         data.forEach(sch => {
           const sec = parseDurationToSeconds(sch.duration);
           totalSec += sec;
-          renderScheduleItem(sch.scheduleId, sch.lessonId, sch.date, sch.lessonTitle, sec);
+          // DB에 등록된 스케줄은 진행시간을 텍스트로 표시
+          renderScheduleItem(sch.scheduleId, sch.lessonId, sch.date, sch.lessonTitle, sec, sch.progressCheckTime);
         });
         totalTimeElem.textContent = formatSecondsToMinSec(totalSec);
       });
   }
 
-
-  // ---------------------------------------------------
-  // C) 오른쪽 목록 + 등록/삭제
-  // ---------------------------------------------------
   const selectedLecturesElem = document.getElementById("selected-lectures");
   const totalTimeElem = document.getElementById("total-time");
 
-  // 체크박스 -> 오른쪽 목록 추가/삭제
-  document.addEventListener("change", function(e) {
-    if (e.target.classList.contains("lesson-checkbox")) {
-      if (!selectedDate) {
-        alert("날짜를 먼저 선택하세요!");
-        e.target.checked = false;
-        return;
-      }
-      if (e.target.disabled) return;
-
-      const lessonId = e.target.getAttribute("data-lesson-id");
-      const durationStr = e.target.getAttribute("data-duration") || "00:00:00";
-      const sec = parseDurationToSeconds(durationStr);
-      const lessonTitle = e.target.parentElement.querySelector("label")?.textContent;
-
-      if (e.target.checked) {
-        // 임시로 오른쪽 목록에 추가
-        renderScheduleItem(null, lessonId, selectedDate, lessonTitle, sec);
-      } else {
-        // 해제 -> 해당 목록 제거
-        document.querySelectorAll(`#selected-lectures li[data-lesson-id='${lessonId}'][data-date='${selectedDate}']`)
-          .forEach(li => li.remove());
-      }
-      updateTotalTime();
-    }
-  });
-
-  function renderScheduleItem(scheduleId, lessonId, dateStr, title, sec) {
+  // DB에 등록된 스케줄은 진행시간을 텍스트로 표시 (임시 항목은 별도 진행시간 입력 없이 등록 영역의 값 적용)
+  function renderScheduleItem(scheduleId, lessonId, dateStr, title, sec, progressTime) {
     const li = document.createElement("li");
-    li.setAttribute("data-schedule-id", scheduleId || "temp"); // 아직 등록 안 된건 temp
+    li.setAttribute("data-schedule-id", scheduleId || "temp");
     li.setAttribute("data-lesson-id", lessonId);
     li.setAttribute("data-date", dateStr);
     li.setAttribute("data-seconds", sec);
-
     li.textContent = `[${dateStr}] ${title} (${formatSecondsToMinSec(sec)})`;
 
-    // 이미 DB에 등록된 레슨이면 삭제버튼
     if (scheduleId) {
+      li.appendChild(document.createTextNode(" - 진행시간: " + progressTime));
       const removeBtn = document.createElement("button");
       removeBtn.classList.add("remove-btn");
       removeBtn.textContent = "삭제";
@@ -429,36 +373,26 @@ document.addEventListener("DOMContentLoaded", function() {
             if (!res.ok) {
               throw new Error("삭제 실패");
             }
-            // 1) 오른쪽 목록에서 제거
             li.remove();
             updateTotalTime();
-
-            // 2) 이미 등록된 레슨 목록 재조회
             return fetch("/schedule/all");
           })
           .then(r => r.json())
           .then(updatedIds => {
-            // 3) 전역 배열 갱신
             registeredLessonIds = updatedIds;
-
-            // 4) 왼쪽 체크박스들 부분 업데이트
             document.querySelectorAll(".lesson-checkbox").forEach(cb => {
               const lessonId = parseInt(cb.getAttribute("data-lesson-id"), 10);
-              const wrapDiv = cb.closest("div"); // 예: <div class="already-registered">
+              const wrapDiv = cb.closest("div");
               if (registeredLessonIds.includes(lessonId)) {
-                // 여전히 등록된 레슨
                 cb.disabled = true;
                 cb.checked = true;
                 wrapDiv?.classList.add("already-registered");
               } else {
-                // 스케줄에서 빠져서 더이상 등록되지 않은 레슨
                 cb.disabled = false;
                 cb.checked = false;
                 wrapDiv?.classList.remove("already-registered");
               }
             });
-
-            // 5) 달력 색상(등록된 날짜) 갱신
             return fetchAllScheduledDates();
           })
           .then(() => {
@@ -469,70 +403,40 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("오류 발생: " + err);
           });
       });
-
       li.appendChild(removeBtn);
     }
-
     selectedLecturesElem.appendChild(li);
   }
 
-  // 등록버튼 -> temp 상태 레슨 bulk 등록
-  const registerBtn = document.getElementById("register-btn");
-  registerBtn.addEventListener("click", function() {
-    if (!selectedDate) {
-      alert("날짜를 먼저 선택하세요!");
-      return;
+  // 체크박스 선택 시 우측 목록에 항목 추가
+  document.addEventListener("change", function(e) {
+    if (e.target.classList.contains("lesson-checkbox")) {
+      if (!selectedDate) {
+        alert("날짜를 먼저 선택하세요!");
+        e.target.checked = false;
+        return;
+      }
+      if (e.target.disabled) return;
+      const lessonId = e.target.getAttribute("data-lesson-id");
+      const durationStr = e.target.getAttribute("data-duration") || "00:00:00";
+      const sec = parseDurationToSeconds(durationStr);
+      const lessonTitle = e.target.parentElement.querySelector("label")?.textContent;
+      if (e.target.checked) {
+        renderScheduleItem(null, lessonId, selectedDate, lessonTitle, sec);
+      } else {
+        document.querySelectorAll(`#selected-lectures li[data-lesson-id='${lessonId}'][data-date='${selectedDate}']`)
+          .forEach(li => li.remove());
+      }
+      updateTotalTime();
     }
-    const items = [...document.querySelectorAll("#selected-lectures li")]
-      .filter(li => li.getAttribute("data-schedule-id") === "temp");
-    if (items.length === 0) {
-      alert("추가로 등록할 강의가 없습니다!");
-      return;
-    }
-    const lessonIds = items.map(li => li.getAttribute("data-lesson-id"));
-
-    fetch("/schedule/bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: selectedDate, lessonIds })
-    })
-      .then(r => {
-        if (!r.ok) throw new Error("등록 실패");
-        return r.text();
-      })
-      .then(msg => {
-        alert("등록 성공! " + msg);
-        // 달력 다시
-        fetchAllScheduledDates().then(() => renderCalendar(currentDate));
-        // 오른쪽 목록 재로드
-        loadSchedulesByDate(selectedDate);
-        // 강의 목록 재로드
-        fetch("/schedule/all")
-        .then(r => r.json())
-        .then(updatedIds => {
-          registeredLessonIds = updatedIds; // 전역 배열에 저장
-          // 3) 왼쪽 DOM 체크박스들 갱신
-          document.querySelectorAll(".lesson-checkbox").forEach(cb => {
-            const lessonId = parseInt(cb.getAttribute("data-lesson-id"), 10);
-            if (registeredLessonIds.includes(lessonId)) {
-              cb.disabled = true;
-              cb.checked = true;
-              cb.closest("div").classList.add("already-registered");
-            }
-          });
-        })
-        .catch(err => console.error("레슨 목록 갱신 실패:", err));
-      })
-      .catch(err => alert("등록 오류: " + err));
   });
 
-
-  // ---------------------------------------------------
-  // D) 유틸 함수
-  // ---------------------------------------------------
   function parseDurationToSeconds(str) {
-    const [hh, mm, ss] = str.split(":").map(Number);
-    return hh*3600 + mm*60 + ss;
+    const parts = str.split(":").map(Number);
+    if(parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    return 0;
   }
   function formatSecondsToMinSec(sec) {
     const minutes = Math.floor(sec / 60);
@@ -547,6 +451,51 @@ document.addEventListener("DOMContentLoaded", function() {
     totalTimeElem.textContent = formatSecondsToMinSec(totalSec);
   }
 
+  // 등록 버튼 클릭 시, 선택한 날짜의 진행시간 (전체 적용)과 Lesson 목록을 함께 전송
+  const registerBtn = document.getElementById("register-btn");
+  registerBtn.addEventListener("click", function() {
+    if (!selectedDate) {
+      alert("날짜를 먼저 선택하세요!");
+      return;
+    }
+    const items = [...document.querySelectorAll("#selected-lectures li")]
+      .filter(li => li.getAttribute("data-schedule-id") === "temp");
+    if (items.length === 0) {
+      alert("추가로 등록할 강의가 없습니다!");
+      return;
+    }
+    const lessonIds = items.map(li => li.getAttribute("data-lesson-id"));
+    const progressCheckTime = document.getElementById("default-progress-time").value;
+    fetch("/schedule/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selectedDate, lessonIds, progressCheckTimes: progressCheckTime })
+    })
+      .then(r => {
+        if (!r.ok) throw new Error("등록 실패");
+        return r.text();
+      })
+      .then(msg => {
+        alert("등록 성공! " + msg);
+        fetchAllScheduledDates().then(() => renderCalendar(currentDate));
+        loadSchedulesByDate(selectedDate);
+        fetch("/schedule/all")
+          .then(r => r.json())
+          .then(updatedIds => {
+            registeredLessonIds = updatedIds;
+            document.querySelectorAll(".lesson-checkbox").forEach(cb => {
+              const lessonId = parseInt(cb.getAttribute("data-lesson-id"), 10);
+              if (registeredLessonIds.includes(lessonId)) {
+                cb.disabled = true;
+                cb.checked = true;
+                cb.closest("div").classList.add("already-registered");
+              }
+            });
+          })
+          .catch(err => console.error("레슨 목록 갱신 실패:", err));
+      })
+      .catch(err => alert("등록 오류: " + err));
+  });
 });
 </script>
 </body>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 진도 체크</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+    .status-icon {
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .red-x { color: red; }
+    .blue-o { color: blue; }
+    .gray-dot { color: gray; }
+  </style>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('div').forEach(el => el.style.pointerEvents = 'auto');
+    });
+</script>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: nav}"></div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>사용자 진도 체크 현황</h2>
+        <a href="admin/user-lessons" class="btn btn-primary">User Lessons 보기</a>
+    </div>
+    <form method="get" action="/user-checks" class="mb-4 d-flex gap-3 align-items-end">
+        <div>
+            <label for="userName">사용자 이름</label>
+            <select class="form-select" id="userName" name="userName">
+                <option value="">전체</option>
+                <option th:each="name : ${users}" th:value="${name}" th:text="${name}" th:selected="${name == selectedUser}"></option>
+            </select>
+        </div>
+        <div>
+            <label for="date">진도 체크 날짜</label>
+            <input type="date" id="date" name="date" class="form-control" th:value="${selectedDate}">
+        </div>
+        <div>
+            <button type="submit" class="btn btn-outline-primary">필터 적용</button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>유저 이름</th>
+            <th>강의 이름</th>
+            <th>진도 체크 날짜</th>
+            <th>과제 진행 여부</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="check : ${checks}">
+            <td th:text="${check.userName}"></td>
+            <td th:text="${check.lessonTitle}"></td>
+            <td th:text="${check.progressCheckTime}"></td>
+            <td>
+                <span th:if="${check.progressDateTime.isAfter(now)}" class="status-icon gray-dot">...ing</span>
+                <span th:if="${check.progressDateTime.isBefore(now)}">
+                    <span th:if="${check.doneWork}" class="status-icon blue-o">⭕</span>
+                    <span th:unless="${check.doneWork}" class="status-icon red-x">❌</span>
+                </span>
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+    </table>
+    <div class="mt-3 d-flex justify-content-center">
+        <nav>
+            <ul class="pagination">
+                <!-- 이전 버튼 -->
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/user-checks(page=${currentPage - 1}, userName=${selectedUser}, date=${selectedDate})}">이전</a>
+                </li>
+
+                <!-- 페이지 번호 -->
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/user-checks(page=${i}, userName=${selectedUser}, date=${selectedDate})}"
+                       th:text="${i + 1}">1</a>
+                </li>
+
+                <!-- 다음 버튼 -->
+                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/user-checks(page=${currentPage + 1}, userName=${selectedUser}, date=${selectedDate})}">다음</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+</div>
+</body>
+</html>
