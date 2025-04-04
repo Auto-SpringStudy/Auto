@@ -15,7 +15,7 @@ public class UserCheckService {
     private final UserCheckRepository userCheckRepository;
 
     public void createUserCheck(Schedule schedule) {
-        for (User user : userRepository.findAll()) {
+        for (User user : userRepository.findByParticipatingTrue()) {
             UserCheck userCheck = new UserCheck(user, schedule);
             userCheckRepository.save(userCheck);
         }

@@ -10,4 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUserId(String userId); // 중복 체크용
     Optional<User> findByGithubId(String githubId);
     List<User> findAllByOrderByStudyOrderAsc();
+    List<User> findByParticipatingTrue();
+
 }
